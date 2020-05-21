@@ -21,7 +21,7 @@
     <div class="row">
         <ul class="col nav justify-content-end border">
             <li class="naw-item">
-            <a class="naw-link" href="#">Регистрация</a></li>
+            <a class="naw-link" href="{% url 'main:register' %}">Регистрация</a></li>
             {% if user.is_authenticated %}
             <li class="naw-item dropdown ">
                 <a class="naw-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true"

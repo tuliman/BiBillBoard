@@ -117,3 +117,14 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 AUTH_USER_MODEL = 'main.AdvUser'
+
+EMAIL_HOST = 'smtp.mail.ru'
+EMAIL_HOST_USER = 'teastysmtp@mail.ru'
+EMAIL_HOST_PASSWORD = '250768Ak'
+EMAIL_PORT = 465
+EMAIL_USE_TLS = True
+
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
