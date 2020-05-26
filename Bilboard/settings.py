@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_cleanup',
+    'easy_thumbnails',
 ]
 
 MIDDLEWARE = [
@@ -63,6 +65,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'main.middlewares.bboard_context_processor',
             ],
         },
     },
@@ -116,15 +119,25 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'main/media')
+MEDIA_URL = '/media/'
+
+THUMBNAIL_ALIASES = {
+    '': {
+        'default': {
+            'size': (96, 96),
+            'corp': 'scale',
+        },
+    },
+}
+THUMBNAIL_BASEDIR = 'thumbnails'
+
 AUTH_USER_MODEL = 'main.AdvUser'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 EMAIL_HOST = 'smtp.mail.ru'
 EMAIL_HOST_USER = 'teastysmtp@mail.ru'
-EMAIL_HOST_PASSWORD = '250768Ak'
+EMAIL_HOST_PASSWORD = '250768ak'
 EMAIL_PORT = 465
 EMAIL_USE_TLS = True
-
-if DEBUG:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-else:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

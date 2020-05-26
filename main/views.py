@@ -88,6 +88,7 @@ def user_activate(request, sign):
     user = get_object_or_404(AdvUser, username=username)
     if user.is_activated:
         template = 'main/user_is_activated.html'
+        print(user)
     else:
         template = 'main/activate_done.html'
         user.is_active = True
@@ -109,3 +110,12 @@ class DeleteUserView(LoginRequiredMixin, DeleteView):
         logout(request)
         messages.add_message(request, messages.SUCCESS, 'Пользователь удален')
         return super().post(request, *args, **kwargs)
+
+    def get_object(self, queryset=None):
+        if not queryset:
+            queryset = self.get_queryset()
+        return get_object_or_404(queryset, pk=self.user_id)
+
+
+def by_rubric(request, pk):
+    pass
