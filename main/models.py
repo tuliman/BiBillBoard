@@ -12,10 +12,10 @@ class AdvUser(AbstractUser):
     class Meta(AbstractUser.Meta):
         pass
 
-    def delete(self,*args,**kwargs):
+    def delete(self, *args, **kwargs):
         for bb in self.bb_set.all():
             bb.delete()
-        return super().delete(*args,**kwargs)
+        return super().delete(*args, **kwargs)
 
 
 user_registrated = Signal(providing_args=['instance'])
@@ -85,7 +85,7 @@ class Bb(models.Model):
     def delete(self, *args, **kwargs):
         for ai in self.additionalimage_set.all():
             ai.delete()
-            super().delete(*args, **kwargs)
+        super().delete(*args, **kwargs)
 
     class Meta:
         verbose_name_plural = 'Обьявления'
