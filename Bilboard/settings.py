@@ -133,11 +133,11 @@ THUMBNAIL_ALIASES = {
 THUMBNAIL_BASEDIR = 'thumbnails'
 
 AUTH_USER_MODEL = 'main.AdvUser'
-
+DEFAULT_FROM_EMAIL = 'teastysmtp@mail.ru'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 EMAIL_HOST = 'smtp.mail.ru'
 EMAIL_HOST_USER = 'teastysmtp@mail.ru'
 EMAIL_HOST_PASSWORD = '250768ak'
 EMAIL_PORT = 465
-EMAIL_USE_TLS = True
+EMAIL_USE_SSL = True

@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
@@ -18,11 +18,13 @@ from django.db.models import Q
 
 from .utilities import signer
 from .models import AdvUser, SubRubric, Bb
-from .forms import ChangeUserInfoForm, RegisterUserForm, SearchForm
+from .forms import ChangeUserInfoForm, RegisterUserForm, SearchForm, AiFormSet, BbForm
 
 
 def index(request):
-    return render(request, 'main/index.html')
+    bbs = Bb.objects.filter(is_active=True)[:10]
+    context = {'bbs': bbs}
+    return render(request, 'main/index.html', context)
 
 
 def other_page(request, page):
@@ -39,7 +41,17 @@ class BBLoginView(LoginView):
 
 @login_required
 def profile(request):
-    return render(request, 'main/profile.html')
+    bbs = Bb.objects.filter(author=request.user.pk)
+    context = {'bbs': bbs}
+    return render(request, 'main/profile.html', context)
+
+
+@login_required
+def profile_bb_detail(request, pk):
+    bb = get_object_or_404(Bb, pk=pk)
+    ais = bb.additionalimage_set.all()
+    context = {"bb": bb, 'ais': ais}
+    return render(request, 'main/profile_bb_detail.html', context)
 
 
 class BBLogoutView(LoginRequiredMixin, LogoutView):
@@ -86,11 +98,11 @@ def user_activate(request, sign):
 
     except BadSignature:
         return render(request, 'main/bad_signature.html')
-
     user = get_object_or_404(AdvUser, username=username)
+
     if user.is_activated:
         template = 'main/user_is_activated.html'
-        print(user)
+
     else:
         template = 'main/activate_done.html'
         user.is_active = True
@@ -123,24 +135,86 @@ def by_rubric(request, pk):
     rubric = get_object_or_404(SubRubric, pk=pk)
     bbs = Bb.objects.filter(is_active=True, rubric=pk)
     if 'keyword' in request.GET:
-        keyword = request.GET('keyword')
-        q = Q(title__icontains=keyword) | Q(contet__icontains=keyword)
+        keyword = request.GET['keyword']
+        q = Q(title__icontains=keyword) | Q(content__icontains=keyword)
         bbs = bbs.filter(q)
     else:
         keyword = ''
 
-    form = SearchForm({'keyword':keyword})
-    paginator = Paginator(bbs,2)
+    form = SearchForm({'keyword': keyword})
+    paginator = Paginator(bbs, 2)
     if 'page' in request.GET:
         page_num = request.GET['page']
     else:
-        page_num =- 1
+        page_num = - 1
 
     page = paginator.get_page(page_num)
     context = {
-        'rubric':rubric,
-        'page':page,
-        'bbs':page.object_list,
-        'form':form,
+        'rubric': rubric,
+        'page': page,
+        'bbs': page.object_list,
+        'form': form,
     }
-    return render(request,'main/by_rubric.html',context)
+    return render(request, 'main/by_rybric.html', context)
+
+
+def detail(request, rubric_pk, pk):
+    bb = get_object_or_404(Bb, pk=pk)
+    ais = bb.additionalimage_set.all()
+    context = {"bb": bb, 'ais': ais}
+    return render(request, 'main/detail.html', context)
+
+
+@login_required
+def profile_bb_add(request):
+    if request.method == 'POST':
+        form = BbForm(request.POST, request.FILES)
+        if form.is_valid():
+            bb = form.save()
+            formset = AiFormSet(request.POST, request.FILES, instance=bb)
+            if formset.is_valid():
+                formset.save()
+                messages.add_message(request, messages.SUCCESS, 'Обьявление добавлено')
+
+                return redirect('main:profile')
+
+    else:
+        form = BbForm(initial={'author': request.user.pk})
+        formset = AiFormSet()
+    context = {'form': form, 'formset': formset}
+    return render(request, 'main/profile_add_bb.html', context)
+
+
+@login_required
+def profile_bb_change(request, pk):
+    bb = get_object_or_404(Bb, pk=pk)
+    if request.method == 'POST':
+        form = BbForm(request.POST, request.FILES, instance=bb)
+        if form.is_valid():
+            bb = form.save()
+            formset = AiFormSet(request.POST, request.FILES, instance=bb)
+            if formset.is_valid():
+                formset.save()
+                messages.add_message(request, messages.SUCCESS, 'обьявление изменено')
+                return redirect('main:profile')
+
+    else:
+        form = BbForm(instance=bb)
+        formset = AiFormSet(instance=bb)
+        context = {'form': form,
+                   'formset': formset}
+        return render(request, 'main/profile_bb_change.html', context)
+
+
+@login_required
+def profile_bb_delete(request, pk):
+    bb = get_object_or_404(Bb, pk=pk)
+    if request.method == 'POST':
+        bb.delete()
+        messages.add_message(request, messages.SUCCESS, 'обьявление удалено')
+        redirect('main:profile')
+    else:
+        context = {
+            'bb': bb
+        }
+        return render(request, 'main/profile_delete_bb.html', context)
